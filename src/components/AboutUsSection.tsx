@@ -2,13 +2,17 @@ import React from 'react';
 import { ArrowRight } from 'lucide-react';
 
 interface AboutUsSectionProps {
+  isSignedIn: boolean;
   onRequestMatchmaking: () => void;
   onExploreSuppliers: () => void;
+  onOpenMemberAuth: (mode: 'signin' | 'signup' | 'account') => void;
 }
 
 export const AboutUsSection: React.FC<AboutUsSectionProps> = ({
+  isSignedIn,
   onRequestMatchmaking,
   onExploreSuppliers,
+  onOpenMemberAuth,
 }) => {
   const membershipGrades = [
     {
@@ -150,6 +154,40 @@ export const AboutUsSection: React.FC<AboutUsSectionProps> = ({
                       ))}
                     </tbody>
                   </table>
+                </div>
+
+                <div className="pt-2 flex flex-wrap items-center justify-between gap-4">
+                  <p className="text-xs text-slate-600">
+                    Start with a free <strong className="text-slate-900">Standard Member</strong> account on www.tradekenya.co.ke.
+                  </p>
+                  <div className="flex flex-wrap items-center gap-3">
+                    {isSignedIn ? (
+                      <button
+                        type="button"
+                        onClick={() => onOpenMemberAuth('account')}
+                        className="px-4 py-2 text-sm font-semibold text-white bg-teal-700 hover:bg-teal-800 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                      >
+                        View Standard Member Account
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => onOpenMemberAuth('signin')}
+                          className="px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                        >
+                          Standard Member Sign In
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onOpenMemberAuth('signup')}
+                          className="px-4 py-2 text-sm font-semibold text-white bg-teal-700 hover:bg-teal-800 rounded-lg transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+                        >
+                          Sign Up as Standard Member
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

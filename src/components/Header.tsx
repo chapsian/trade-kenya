@@ -5,11 +5,19 @@ export type ActiveTab = 'marketplace' | 'local-suppliers' | 'matching' | 'about-
 
 interface HeaderProps {
   activeTab: ActiveTab;
+  isSignedIn: boolean;
   onSelectTab: (tab: ActiveTab) => void;
   onOpenInquiry: () => void;
+  onOpenMemberAuth: (mode: 'signin' | 'signup' | 'account') => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab, onOpenInquiry }) => {
+export const Header: React.FC<HeaderProps> = ({
+  activeTab,
+  isSignedIn,
+  onSelectTab,
+  onOpenInquiry,
+  onOpenMemberAuth,
+}) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems: { id: ActiveTab; label: string }[] = [
@@ -36,7 +44,7 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab, onOpenIn
           tradeKenya
         </button>
 
-        {/* Zone 2: 4 concise single-line text navigation links */}
+        {/* Zone 2: 5 concise single-line text navigation links */}
         <nav aria-label="Primary Navigation" className="hidden md:flex items-center gap-7">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
@@ -56,6 +64,13 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab, onOpenIn
               </button>
             );
           })}
+          <button
+            type="button"
+            onClick={() => onOpenMemberAuth(isSignedIn ? 'account' : 'signin')}
+            className="text-sm font-medium py-1 border-b-2 border-transparent text-teal-800 hover:text-teal-900 hover:border-teal-700 transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-teal-700"
+          >
+            {isSignedIn ? 'Member Account' : 'Sign Up / Sign In'}
+          </button>
         </nav>
 
         {/* Zone 3: 1 Primary Action */}
@@ -98,6 +113,16 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onSelectTab, onOpenIn
               </button>
             );
           })}
+          <button
+            type="button"
+            onClick={() => {
+              setMobileMenuOpen(false);
+              onOpenMemberAuth(isSignedIn ? 'account' : 'signin');
+            }}
+            className="w-full text-left px-3 py-2.5 rounded-lg text-sm font-semibold text-teal-800 hover:bg-teal-50 transition-colors cursor-pointer"
+          >
+            {isSignedIn ? 'Standard Member Account' : 'Sign Up / Sign In'}
+          </button>
           <div className="pt-2">
             <button
               type="button"

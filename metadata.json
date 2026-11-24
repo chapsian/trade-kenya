@@ -2,5 +2,7 @@
   "name": "tradeKenya — Kenya's Global B2B Export Marketplace (www.tradekenya.co.ke)",
   "description": "www.tradekenya.co.ke is Kenya's leading online B2B marketplace enabling global buyers to discover and source verified Kenyan suppliers, manufacturers, and export products.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

@@ -1,0 +1,181 @@
+{
+  "entities": {
+    "MemberProfile": {
+      "title": "MemberProfile",
+      "description": "Registered Standard Member profile for a global buyer or Kenyan supplier on www.tradekenya.co.ke",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the member",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Verified business or account email address",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Full name of the account holder",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "companyName": {
+          "type": "string",
+          "description": "Registered company or cooperative name",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "memberType": {
+          "type": "string",
+          "enum": ["buyer", "kenyan_supplier"],
+          "description": "Whether the member is an overseas buyer or a Kenyan supplier"
+        },
+        "countryOrCounty": {
+          "type": "string",
+          "description": "Kenyan county or overseas buyer country",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "membershipGrade": {
+          "type": "string",
+          "enum": ["Standard"],
+          "description": "Initial tradeKenya membership grade assigned at registration"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server last-updated timestamp"
+        }
+      },
+      "required": [
+        "uid",
+        "email",
+        "displayName",
+        "companyName",
+        "memberType",
+        "countryOrCounty",
+        "membershipGrade",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MemberInquiry": {
+      "title": "MemberInquiry",
+      "description": "B2B quote request or matchmaking inquiry submitted by a signed-in Standard Member",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "referenceCode": {
+          "type": "string",
+          "description": "Unique inquiry reference ID",
+          "minLength": 6,
+          "maxLength": 24,
+          "pattern": "^TK-INQ-[0-9]+$"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["matchmaking", "product-quote", "supplier-contact", "offer-rfq"],
+          "description": "Type of trade inquiry"
+        },
+        "subjectTitle": {
+          "type": "string",
+          "description": "Product, supplier, or RFQ subject",
+          "minLength": 2,
+          "maxLength": 180
+        },
+        "companyName": {
+          "type": "string",
+          "description": "Submitting company name",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "businessEmail": {
+          "type": "string",
+          "format": "email",
+          "description": "Contact email for supplier replies",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "Kenyan export category identifier",
+          "minLength": 2,
+          "maxLength": 64
+        },
+        "quantity": {
+          "type": "string",
+          "description": "Estimated order volume",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "destinationPort": {
+          "type": "string",
+          "description": "Target destination country or port",
+          "minLength": 0,
+          "maxLength": 120
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional specifications and Incoterms",
+          "minLength": 0,
+          "maxLength": 1000
+        },
+        "status": {
+          "type": "string",
+          "enum": ["Submitted"],
+          "description": "Initial inquiry status"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp"
+        }
+      },
+      "required": [
+        "uid",
+        "referenceCode",
+        "mode",
+        "subjectTitle",
+        "companyName",
+        "businessEmail",
+        "categoryId",
+        "quantity",
+        "destinationPort",
+        "notes",
+        "status",
+        "createdAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/members/{userId}": {
+      "schema": {
+        "$ref": "#/entities/MemberProfile"
+      },
+      "description": "Private Standard Member profile owned by userId"
+    },
+    "/members/{userId}/inquiries/{inquiryId}": {
+      "schema": {
+        "$ref": "#/entities/MemberInquiry"
+      },
+      "description": "Private trade inquiries submitted by the signed-in Standard Member"
+    }
+  }
+}

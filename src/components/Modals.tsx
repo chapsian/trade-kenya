@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { User } from 'firebase/auth';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { CheckCircle2, MapPin, Package, ShieldCheck, X } from 'lucide-react';
 import {
   BuyingRequest,
@@ -9,6 +11,7 @@ import {
 } from '../data/kenyaMarketplace';
 import { ProductArtwork } from './ProductArtwork';
 import { getBadgeIcon, getBadgeTitle } from './LocalSuppliersSection';
+import { db, handleFirestoreError, MemberProfile, OperationType } from '../lib/firebase';
 
 interface ProductDetailModalProps {
   product: KenyanProduct | null;
@@ -280,10 +283,19 @@ export interface InquiryContext {
 
 interface InquiryModalProps {
   context: InquiryContext | null;
+  user: User | null;
+  profile: MemberProfile | null;
   onClose: () => void;
+  onOpenMemberAuth: (mode: 'signin' | 'signup') => void;
 }
 
-export const InquiryModal: React.FC<InquiryModalProps> = ({ context, onClose }) => {
+export const InquiryModal: React.FC<InquiryModalProps> = ({
+  context,
+  user,
+  profile,
+  onClose,
+  onOpenMemberAuth,
+}) => {
   const [company, setCompany] = useState('');
   const [email, setEmail] = useState('');
   const [country, setCountry] = useState('');
@@ -291,7 +303,23 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ context, onClose }) 
   const [quantity, setQuantity] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [submittedRef, setSubmittedRef] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (context) {
+      setCategoryId(context.categoryId || KENYAN_CATEGORIES[0].id);
+      setSubmittedRef(null);
+      setError('');
+      if (profile) {
+        setCompany(profile.companyName);
+        setEmail(profile.email);
+        setCountry(profile.countryOrCounty);
+      } else if (user?.email) {
+        setEmail(user.email);
+      }
+    }
+  }, [context, profile, user]);
 
   if (!context) return null;
 
@@ -302,11 +330,11 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ context, onClose }) 
     'offer-rfq': `Submit Export Offer — ${context.buyingRequest?.id ?? ''}`,
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!company.trim()) {
-      setError('Please enter your company name.');
+    if (company.trim().length < 2) {
+      setError('Please enter your company name (at least 2 characters).');
       return;
     }
     if (!emailPattern.test(email.trim())) {
@@ -318,8 +346,39 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ context, onClose }) 
       return;
     }
     setError('');
+    setSubmitting(true);
     const refId = `TK-INQ-${Math.floor(100000 + Math.random() * 900000)}`;
-    setSubmittedRef(refId);
+
+    try {
+      if (user && profile) {
+        const path = `members/${user.uid}/inquiries/${refId}`;
+        try {
+          await setDoc(doc(db, 'members', user.uid, 'inquiries', refId), {
+            uid: user.uid,
+            referenceCode: refId,
+            mode: context.mode,
+            subjectTitle: (
+              context.subjectTitle ||
+              context.buyingRequest?.title ||
+              'Kenyan Export Matchmaking'
+            ).slice(0, 180),
+            companyName: company.trim().slice(0, 120),
+            businessEmail: email.trim().slice(0, 160),
+            categoryId: categoryId.slice(0, 64),
+            quantity: quantity.trim().slice(0, 100),
+            destinationPort: country.trim().slice(0, 120),
+            notes: message.trim().slice(0, 1000),
+            status: 'Submitted',
+            createdAt: serverTimestamp(),
+          });
+        } catch (fsErr) {
+          handleFirestoreError(fsErr, OperationType.CREATE, path);
+        }
+      }
+      setSubmittedRef(refId);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -360,6 +419,21 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ context, onClose }) 
             <p className="mt-3 text-xs text-slate-500">
               Confirmation sent to {email}. Expected verified supplier response within 4–12 business hours.
             </p>
+            {!profile && (
+              <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700">
+                Want to track inquiries across sessions?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenMemberAuth('signup');
+                  }}
+                  className="font-semibold text-teal-800 hover:underline cursor-pointer"
+                >
+                  Sign up free as a Standard Member
+                </button>
+              </div>
+            )}
             <button
               type="button"
               onClick={onClose}
@@ -483,9 +557,10 @@ export const InquiryModal: React.FC<InquiryModalProps> = ({ context, onClose }) 
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 text-sm font-semibold text-white bg-teal-700 hover:bg-teal-800 rounded-lg cursor-pointer"
+                disabled={submitting}
+                className="px-5 py-2 text-sm font-semibold text-white bg-teal-700 hover:bg-teal-800 rounded-lg cursor-pointer disabled:opacity-60"
               >
-                Submit to tradeKenya
+                {submitting ? 'Submitting...' : 'Submit to tradeKenya'}
               </button>
             </div>
           </form>
